@@ -46,6 +46,52 @@ streamlit run app.py
 
 ## Deployment
 
+### Docker (recommended for sharing)
+
+First, install Docker Desktop: [Get Docker](https://docs.docker.com/get-docker/)
+
+#### Build image
+```bash
+docker build -t text-analysis-app:latest .
+```
+
+#### Run container
+```bash
+# Map host 8501 to container 8501
+docker run --rm -p 8501:8501 --name text-analysis-app text-analysis-app:latest
+
+# If 8501 is busy, use another host port (e.g., 8502)
+docker run --rm -p 8502:8501 --name text-analysis-app text-analysis-app:latest
+```
+Then open `http://localhost:8501` (or the host port you chose).
+
+#### Share the image
+- Push to a registry (Docker Hub example):
+```bash
+docker tag text-analysis-app:latest YOUR_DOCKERHUB_USERNAME/text-analysis-app:latest
+docker push YOUR_DOCKERHUB_USERNAME/text-analysis-app:latest
+```
+Recipient runs:
+```bash
+docker pull YOUR_DOCKERHUB_USERNAME/text-analysis-app:latest
+docker run --rm -p 8501:8501 --name text-analysis-app YOUR_DOCKERHUB_USERNAME/text-analysis-app:latest
+```
+
+- Offline tarball:
+```bash
+docker save -o text-analysis-app.tar text-analysis-app:latest
+# recipient
+docker load -i text-analysis-app.tar
+docker run --rm -p 8501:8501 --name text-analysis-app text-analysis-app:latest
+```
+
+#### Multi-arch build (optional)
+For sharing across Apple Silicon (arm64) and x86 (amd64):
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t YOUR_DOCKERHUB_USERNAME/text-analysis-app:latest --push .
+```
+
 ### Streamlit Cloud
 
 1. Push your code to GitHub
@@ -79,5 +125,7 @@ streamlit run app.py --server.port 8501
 streamlit_app/
 ├── app.py              # Main Streamlit application
 ├── requirements.txt    # Python dependencies
-└── README.md          # This file
+├── Dockerfile          # Container build instructions
+├── .dockerignore       # Docker build context ignore rules
+└── README.md           # Project documentation
 ```
